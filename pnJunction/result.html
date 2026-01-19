@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Result & Precautions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      color: #60a5fa;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #1e3a8a, #1e293b);
+      padding: 1.5rem;
+      border-radius: 15px;
+      margin-bottom: 2rem;
+      position: relative;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    .card h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+      color: #7dd3fc;
+    }
+
+    .popup {
+      display: none;
+      margin-top: 0.75rem;
+      color: #e2e8f0;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .card.active .popup {
+      display: block;
+    }
+
+    .nav-button {
+      display: block;
+      text-align: center;
+      margin: 2rem auto 0;
+      width: fit-content;
+      padding: 0.75rem 1.5rem;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Result & Precautions</h1>
+
+  <div class="card" onclick="togglePopup(this)">
+    <h2>Result</h2>
+    <div class="popup">
+      The PN junction diode exhibits distinct behavior under forward and reverse bias:
+      <ul>
+        <li>In forward bias, current increases exponentially with voltage.</li>
+        <li>In reverse bias, only a negligible leakage current flows.</li>
+        <li>This confirms the rectifying nature of the diode.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" onclick="togglePopup(this)">
+    <h2>Precautions</h2>
+    <div class="popup">
+      <ul>
+        <li>Ensure correct polarity of the diode during connections.</li>
+        <li>Never exceed the maximum reverse voltage rating of the diode.</li>
+        <li>Use proper resistance values to limit current in forward bias.</li>
+        <li>Verify all connections before powering the circuit.</li>
+        <li>Handle all instruments and the diode carefully to avoid damage.</li>
+      </ul>
+    </div>
+  </div>
+
+  <a class="nav-button" href="chart.html">← Back to Chart</a>
+</body>
+
+<script>
+  function togglePopup(card) {
+    card.classList.toggle("active");
+  }
+</script>
+</html>

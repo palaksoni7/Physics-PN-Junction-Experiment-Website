@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PN Junction Table</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #60a5fa;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      color: #7dd3fc;
+      margin-top: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background-color: #1e293b;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+
+    th {
+      background-color: #1e3a8a;
+      color: #f1f5f9;
+    }
+
+    td input {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      border-radius: 4px;
+    }
+
+    .add-row-btn, .submit-btn {
+      display: inline-block;
+      margin-bottom: 2rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .add-row-btn:hover, .submit-btn:hover {
+      background-color: #2563eb;
+    }
+
+    .button-group {
+      text-align: center;
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .nav-button {
+      padding: 0.75rem 1.5rem;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>PN Junction V-I Characteristics Table</h1>
+
+  <!-- Forward Biased Table -->
+  <h2>Forward Biased</h2>
+  <table id="forwardTable">
+    <thead>
+      <tr>
+        <th>Sr. No</th>
+        <th>Voltage (V)</th>
+        <th>Current (mA)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><input type="number"></td><td><input type="number"></td></tr>
+      <tr><td>2</td><td><input type="number"></td><td><input type="number"></td></tr>
+      <tr><td>3</td><td><input type="number"></td><td><input type="number"></td></tr>
+    </tbody>
+  </table>
+  <div class="button-group">
+    <button class="add-row-btn" onclick="addRow('forwardTable')">+ Add Row</button>
+  </div>
+
+  <!-- Reverse Biased Table -->
+  <h2>Reverse Biased</h2>
+  <table id="reverseTable">
+    <thead>
+      <tr>
+        <th>Sr. No</th>
+        <th>Voltage (V)</th>
+        <th>Current (μA)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><input type="number"></td><td><input type="number"></td></tr>
+      <tr><td>2</td><td><input type="number"></td><td><input type="number"></td></tr>
+      <tr><td>3</td><td><input type="number"></td><td><input type="number"></td></tr>
+    </tbody>
+  </table>
+  <div class="button-group">
+    <button class="add-row-btn" onclick="addRow('reverseTable')">+ Add Row</button>
+  </div>
+
+  <!-- Submit Button -->
+  <div class="button-group">
+    <button class="submit-btn" onclick="submitData()">✅ Submit & View Chart</button>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="nav-buttons">
+    <a class="nav-button" href="experiment.html">← Back to Details</a>
+  </div>
+
+  <script>
+    function addRow(tableId) {
+      const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+      const rowCount = table.rows.length;
+      const serialCell = newRow.insertCell(0);
+      const voltageCell = newRow.insertCell(1);
+      const currentCell = newRow.insertCell(2);
+      serialCell.textContent = rowCount;
+      voltageCell.innerHTML = '<input type="number">';
+      currentCell.innerHTML = '<input type="number">';
+    }
+
+    function extractData(tableId) {
+      const rows = document.getElementById(tableId).getElementsByTagName('tbody')[0].rows;
+      const data = [];
+      for (let row of rows) {
+        const voltage = row.cells[1].querySelector('input')?.value;
+        const current = row.cells[2].querySelector('input')?.value;
+        if (voltage !== "" && current !== "") {
+          data.push({ voltage: parseFloat(voltage), current: parseFloat(current) });
+        }
+      }
+      return data;
+    }
+
+    function submitData() {
+      const forwardData = extractData('forwardTable');
+      const reverseData = extractData('reverseTable');
+      localStorage.setItem('forwardData', JSON.stringify(forwardData));
+      localStorage.setItem('reverseData', JSON.stringify(reverseData));
+      window.location.href = "chart.html";
+    }
+  </script>
+</body>
+</html>

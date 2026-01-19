@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PN Junction V-I Characteristics - 4 Quadrant Graph</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      max-width: 900px;
+    }
+
+    #graphContainer {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: 500px;
+      border-radius: 8px;
+      background-color: #0f172a;
+    }
+
+    .nav-buttons {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .nav-button {
+      padding: 0.75rem 1.8rem;
+      background-color: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .nav-button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>PN Junction Diode V-I Characteristics (Four Quadrant)</h1>
+
+  <div id="graphContainer">
+    <canvas id="viChart"></canvas>
+  </div>
+
+  <div class="nav-buttons">
+    <a href="table.html" class="nav-button">← Back to Table</a>
+    <a href="result.html" class="nav-button">Next →</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Utility to safely get data from localStorage and parse as array of {voltage, current}
+    function getData(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(d => typeof d.voltage === 'number' && typeof d.current === 'number');
+      } catch {
+        return [];
+      }
+    }
+
+    const forwardData = getData('forwardData');
+    const reverseData = getData('reverseData');
+
+    // Combine all data points for scaling, taking into account forced negatives for reverse data
+    const allVoltages = [
+      ...forwardData.map(p => p.voltage),
+      ...reverseData.map(p => p.voltage > 0 ? -p.voltage : p.voltage)
+    ];
+    const allCurrents = [
+      ...forwardData.map(p => p.current),
+      ...reverseData.map(p => p.current > 0 ? -p.current : p.current)
+    ];
+
+    if (allVoltages.length === 0 || allCurrents.length === 0) {
+      alert('No data found! Please enter values in the table page first.');
+    }
+
+    function symmetricLimits(arr, paddingRatio=0.1) {
+      if (arr.length === 0) return [-10, 10];
+      const minVal = Math.min(...arr);
+      const maxVal = Math.max(...arr);
+      const absMax = Math.max(Math.abs(minVal), Math.abs(maxVal));
+      const paddedMax = absMax * (1 + paddingRatio);
+      return [-paddedMax, paddedMax];
+    }
+
+    const [xMin, xMax] = symmetricLimits(allVoltages);
+    const [yMin, yMax] = symmetricLimits(allCurrents);
+
+    forwardData.sort((a,b) => a.voltage - b.voltage);
+    reverseData.sort((a,b) => a.voltage - b.voltage);
+
+    const ctx = document.getElementById('viChart').getContext('2d');
+
+    const axesCrossingPlugin = {
+      id: 'axesCrossing',
+      afterDraw(chart) {
+        const {ctx, chartArea: {left, right, top, bottom}, scales} = chart;
+        ctx.save();
+
+        const xZero = scales.x.getPixelForValue(0);
+        const yZero = scales.y.getPixelForValue(0);
+
+        ctx.strokeStyle = '#7dd3fc';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(xZero, top);
+        ctx.lineTo(xZero, bottom);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(xZero - 6, top + 15);
+        ctx.lineTo(xZero + 6, top + 15);
+        ctx.lineTo(xZero, top);
+        ctx.closePath();
+        ctx.fillStyle = '#7dd3fc';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(left, yZero);
+        ctx.lineTo(right, yZero);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(right - 15, yZero - 6);
+        ctx.lineTo(right - 15, yZero + 6);
+        ctx.lineTo(right, yZero);
+        ctx.closePath();
+        ctx.fillStyle = '#7dd3fc';
+        ctx.fill();
+
+        ctx.restore();
+      }
+    };
+
+    const viChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [
+          {
+            label: 'Forward Biased',
+            data: forwardData.map(p => ({ x: p.voltage, y: p.current })),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.25)',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            showLine: true,
+          },
+          {
+            label: 'Reverse Biased',
+            data: reverseData.map(p => ({
+              x: p.voltage > 0 ? -p.voltage : p.voltage,
+              y: p.current > 0 ? -p.current : p.current
+            })),
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249,115,22,0.25)',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            showLine: true,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'nearest', intersect: true },
+        animation: { duration: 600 },
+        plugins: {
+          legend: {
+            labels: { color: '#f1f5f9', font: { size: 14 } }
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: 'rgba(59, 130, 246, 0.85)',
+            titleFont: { size: 16, weight: '600' },
+            bodyFont: { size: 14 },
+            callbacks: {
+              label: ctx => `V: ${ctx.parsed.x} V, I: ${ctx.parsed.y} mA`
+            }
+          },
+          axesCrossingPlugin
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            min: xMin,
+            max: xMax,
+            title: {
+              display: true,
+              text: 'Voltage (V)',
+              color: '#7dd3fc',
+              font: { size: 18, weight: 'bold' }
+            },
+            ticks: {
+              color: '#cbd5e1',
+              stepSize: 1,
+              maxTicksLimit: 15,
+            },
+            grid: {
+              color: '#334155',
+              borderColor: '#7dd3fc',
+              drawTicks: true,
+              drawOnChartArea: true,
+              zeroLineColor: 'transparent'
+            }
+          },
+          y: {
+            min: yMin,
+            max: yMax,
+            title: {
+              display: true,
+              text: 'Current (mA)',
+              color: '#7dd3fc',
+              font: { size: 18, weight: 'bold' }
+            },
+            ticks: {
+              color: '#cbd5e1',
+              stepSize: 1,
+              maxTicksLimit: 15,
+            },
+            grid: {
+              color: '#334155',
+              borderColor: '#7dd3fc',
+              drawTicks: true,
+              drawOnChartArea: true,
+              zeroLineColor: 'transparent'
+            }
+          }
+        }
+      },
+      plugins: [axesCrossingPlugin]
+    });
+  </script>
+</body>
+</html>
